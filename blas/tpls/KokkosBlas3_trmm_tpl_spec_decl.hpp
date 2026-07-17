@@ -262,4 +262,97 @@ KOKKOSBLAS3_CTRMM_CUBLAS(Kokkos::LayoutRight, Kokkos::LayoutRight, Kokkos::CudaU
 }  // namespace KokkosBlas
 #endif  // KOKKOSKERNELS_ENABLE_TPL_CUBLAS
 
+// rocBLAS
+#ifdef KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
+#include <KokkosBlas_tpl_spec.hpp>
+
+namespace KokkosBlas {
+namespace Impl {
+
+#define KOKKOSBLAS3_XTRMM_ROCBLAS(SCALAR_TYPE, ROCBLAS_SCALAR_TYPE, ROCBLAS_FN, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)    \
+  template <>                                                                                                         \
+  struct TRMM<Kokkos::HIP,                                                                                            \
+              Kokkos::View<const SCALAR_TYPE**, LAYOUT, Kokkos::Device<Kokkos::HIP, MEM_SPACE>,                       \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              Kokkos::View<SCALAR_TYPE**, LAYOUT, Kokkos::Device<Kokkos::HIP, MEM_SPACE>,                             \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              true, ETI_SPEC_AVAIL> {                                                                                 \
+    typedef SCALAR_TYPE SCALAR;                                                                                       \
+    typedef Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::HIP, MEM_SPACE>,                              \
+                         Kokkos::MemoryTraits<Kokkos::Unmanaged> >                                                    \
+        AViewType;                                                                                                    \
+    typedef Kokkos::View<SCALAR**, LAYOUT, Kokkos::Device<Kokkos::HIP, MEM_SPACE>,                                    \
+                         Kokkos::MemoryTraits<Kokkos::Unmanaged> >                                                    \
+        BViewType;                                                                                                    \
+                                                                                                                       \
+    static void trmm(const typename BViewType::execution_space& space, const char side[], const char uplo[],         \
+                     const char trans[], const char diag[], typename BViewType::const_value_type& alpha,             \
+                     const AViewType& A, const BViewType& B) {                                                        \
+      Kokkos::Profiling::pushRegion("KokkosBlas::trmm[TPL_ROCBLAS," #SCALAR_TYPE "]");                                \
+      const int M = static_cast<int>(B.extent(0));                                                                    \
+      const int N = static_cast<int>(B.extent(1));                                                                    \
+                                                                                                                       \
+      const int AST = A.stride(1), LDA = (AST == 0) ? 1 : AST;                                                        \
+      const int BST = B.stride(1), LDB = (BST == 0) ? 1 : BST;                                                        \
+                                                                                                                       \
+      rocblas_side side_       = side_mode_kk_to_rocblas(side);                                                       \
+      rocblas_fill uplo_       = ((uplo[0] == 'L') || (uplo[0] == 'l')) ? rocblas_fill_lower : rocblas_fill_upper;    \
+      rocblas_operation trans_ = trans_mode_kk_to_rocblas(trans);                                                     \
+      rocblas_diagonal diag_ =                                                                                        \
+          ((diag[0] == 'U') || (diag[0] == 'u')) ? rocblas_diagonal_unit : rocblas_diagonal_non_unit;                 \
+                                                                                                                       \
+      KokkosBlas::Impl::RocBlasSingleton& s = KokkosBlas::Impl::RocBlasSingleton::singleton();                        \
+      KOKKOSBLAS_IMPL_ROCBLAS_SAFE_CALL(rocblas_set_stream(s.handle, space.hip_stream()));                            \
+      KOKKOSBLAS_IMPL_ROCBLAS_SAFE_CALL(ROCBLAS_FN(s.handle, side_, uplo_, trans_, diag_, M, N,                       \
+                                                   reinterpret_cast<const ROCBLAS_SCALAR_TYPE*>(&alpha),              \
+                                                   reinterpret_cast<const ROCBLAS_SCALAR_TYPE*>(A.data()), LDA,       \
+                                                   reinterpret_cast<const ROCBLAS_SCALAR_TYPE*>(B.data()), LDB,       \
+                                                   reinterpret_cast<ROCBLAS_SCALAR_TYPE*>(B.data()), LDB));           \
+      KOKKOSBLAS_IMPL_ROCBLAS_SAFE_CALL(rocblas_set_stream(s.handle, NULL));                                          \
+      Kokkos::Profiling::popRegion();                                                                                 \
+    }                                                                                                                 \
+  };
+
+#define KOKKOSBLAS3_DTRMM_ROCBLAS(LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL) \
+  KOKKOSBLAS3_XTRMM_ROCBLAS(double, double, rocblas_dtrmm, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)
+
+#define KOKKOSBLAS3_STRMM_ROCBLAS(LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL) \
+  KOKKOSBLAS3_XTRMM_ROCBLAS(float, float, rocblas_strmm, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)
+
+#define KOKKOSBLAS3_ZTRMM_ROCBLAS(LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)                                             \
+  KOKKOSBLAS3_XTRMM_ROCBLAS(Kokkos::complex<double>, rocblas_double_complex, rocblas_ztrmm, LAYOUT, MEM_SPACE,   \
+                            ETI_SPEC_AVAIL)
+
+#define KOKKOSBLAS3_CTRMM_ROCBLAS(LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)                                           \
+  KOKKOSBLAS3_XTRMM_ROCBLAS(Kokkos::complex<float>, rocblas_float_complex, rocblas_ctrmm, LAYOUT, MEM_SPACE,   \
+                            ETI_SPEC_AVAIL)
+
+KOKKOSBLAS3_DTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, true)
+KOKKOSBLAS3_DTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, false)
+
+KOKKOSBLAS3_STRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, true)
+KOKKOSBLAS3_STRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, false)
+
+KOKKOSBLAS3_ZTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, true)
+KOKKOSBLAS3_ZTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, false)
+
+KOKKOSBLAS3_CTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, true)
+KOKKOSBLAS3_CTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPSpace, false)
+
+KOKKOSBLAS3_DTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, true)
+KOKKOSBLAS3_DTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
+
+KOKKOSBLAS3_STRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, true)
+KOKKOSBLAS3_STRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
+
+KOKKOSBLAS3_ZTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, true)
+KOKKOSBLAS3_ZTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
+
+KOKKOSBLAS3_CTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, true)
+KOKKOSBLAS3_CTRMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
+
+}  // namespace Impl
+}  // namespace KokkosBlas
+#endif  // KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
+
 #endif  // KOKKOSBLAS3_TRMM_TPL_SPEC_DECL_HPP_

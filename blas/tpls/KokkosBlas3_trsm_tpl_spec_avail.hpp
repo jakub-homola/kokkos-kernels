@@ -80,6 +80,30 @@ KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_CUBLAS(Kokkos::complex<float>, Kokkos::LayoutRig
                                        Kokkos::CudaUVMSpace)
 
 #endif
+
+// rocBLAS
+#ifdef KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
+
+#define KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(SCALAR, LAYOUT, MEMSPACE)                                \
+  template <>                                                                                            \
+  struct trsm_tpl_spec_avail<Kokkos::HIP,                                                                \
+                             Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::HIP, MEMSPACE>, \
+                                          Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                     \
+                             Kokkos::View<SCALAR**, LAYOUT, Kokkos::Device<Kokkos::HIP, MEMSPACE>,       \
+                                          Kokkos::MemoryTraits<Kokkos::Unmanaged> > > {                  \
+    enum : bool { value = true };                                                                        \
+  };
+
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(double, Kokkos::LayoutLeft, Kokkos::HIPSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(float, Kokkos::LayoutLeft, Kokkos::HIPSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::HIPSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::HIPSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(double, Kokkos::LayoutLeft, Kokkos::HIPManagedSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(float, Kokkos::LayoutLeft, Kokkos::HIPManagedSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::HIPManagedSpace)
+KOKKOSBLAS3_TRSM_TPL_SPEC_AVAIL_ROCBLAS(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::HIPManagedSpace)
+
+#endif
 }  // namespace Impl
 }  // namespace KokkosBlas
 

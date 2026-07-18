@@ -97,6 +97,7 @@ gen_blas_eti(Blas2_syr2           syr2)
 gen_blas_eti(Blas3_gemm           gemm)
 gen_blas_eti(Blas3_trsm           trsm)
 gen_blas_eti(Blas3_trmm           trmm)
+gen_blas_eti(Blas3_syrk           syrk)
 
 # These last two do REAL_FLOATS
 

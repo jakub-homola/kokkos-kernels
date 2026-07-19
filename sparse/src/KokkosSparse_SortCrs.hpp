@@ -100,6 +100,7 @@ void sort_crs_matrix(const execution_space& exec, const rowmap_t& rowmap, const 
       Kokkos::deep_copy(exec, origEntries, entries);
       KokkosSparse::Impl::applyPermutation(exec, permutation, origEntries, entries);
       KokkosSparse::Impl::applyPermutation(exec, permutation, origValues, values);
+      exec.fence();
     } else {
       using TeamPol = Kokkos::TeamPolicy<execution_space>;
       // Can't use bulk sort approach as matrix dimensions are too large.

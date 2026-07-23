@@ -589,27 +589,6 @@ KOKKOSBLAS2_CGEMV_ROCBLAS(Kokkos::LayoutRight, Kokkos::HIPSpace, false)
 namespace KokkosBlas {
 namespace Impl {
 
-inline oneapi::mkl::transpose mode_kk_to_onemkl(char mode_kk) {
-  switch (toupper(mode_kk)) {
-    case 'N': return oneapi::mkl::transpose::nontrans;
-    case 'T': return oneapi::mkl::transpose::trans;
-    case 'C': return oneapi::mkl::transpose::conjtrans;
-    default:;
-  }
-  throw std::invalid_argument("Invalid mode for oneMKL (should be one of N, T, C)");
-}
-
-template <typename T, bool is_complex = false>
-struct kokkos_to_std_type_map {
-  using type = T;
-};
-
-// e.g., map Kokkos::complex<float> to std::complex<float>
-template <typename T>
-struct kokkos_to_std_type_map<T, true> {
-  using type = std::complex<typename KokkosKernels::ArithTraits<T>::mag_type>;
-};
-
 #define KOKKOSBLAS2_GEMV_ONEMKL(SCALAR, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)                                              \
   template <class ExecSpace>                                                                                            \
   struct GEMV<ExecSpace,                                                                                                \
@@ -654,14 +633,39 @@ struct kokkos_to_std_type_map<T, true> {
     }                                                                                                                   \
   };
 
-KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutRight, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutRight, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
-KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::Experimental::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace, false)
+
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(float, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(double, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_GEMV_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace, false)
 }  // namespace Impl
 }  // namespace KokkosBlas
 #endif

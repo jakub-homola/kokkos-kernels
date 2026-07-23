@@ -192,4 +192,78 @@ KOKKOSBLAS3_CSYMM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
 }  // namespace KokkosBlas
 #endif  // KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
 
+// oneMKL
+#if defined(KOKKOSKERNELS_ENABLE_TPL_MKL) && defined(KOKKOS_ENABLE_SYCL)
+#include <mkl.h>
+#include <oneapi/mkl/blas.hpp>
+#include <KokkosBlas_tpl_spec.hpp>
+
+namespace KokkosBlas {
+namespace Impl {
+
+#define KOKKOSBLAS3_SYMM_ONEMKL(SCALAR, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)                                            \
+  template <class ExecSpace>                                                                                          \
+  struct SYMM<ExecSpace,                                                                                              \
+              Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,             \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,             \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              Kokkos::View<SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,                   \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              true, ETI_SPEC_AVAIL> {                                                                                 \
+    using device_type = Kokkos::Device<ExecSpace, MEM_SPACE>;                                                         \
+    using mem_traits  = Kokkos::MemoryTraits<Kokkos::Unmanaged>;                                                      \
+    using AViewType   = Kokkos::View<const SCALAR**, LAYOUT, device_type, mem_traits>;                                \
+    using BViewType   = Kokkos::View<const SCALAR**, LAYOUT, device_type, mem_traits>;                                \
+    using CViewType   = Kokkos::View<SCALAR**, LAYOUT, device_type, mem_traits>;                                      \
+                                                                                                                       \
+    static void symm(const ExecSpace& exec, const char kk_side[], const char kk_uplo[],                               \
+                     typename CViewType::const_value_type& alpha, const AViewType& A, const BViewType& B,             \
+                     typename CViewType::const_value_type& beta, const CViewType& C) {                                \
+      std::string label = "KokkosBlas::symm[TPL_ONEMKL," + KokkosKernels::ArithTraits<SCALAR>::name() + "]";          \
+      Kokkos::Profiling::pushRegion(label);                                                                           \
+                                                                                                                       \
+      const std::int64_t M = C.extent(0);                                                                             \
+      const std::int64_t N = C.extent(1);                                                                             \
+                                                                                                                       \
+      const std::int64_t AST = A.stride(1), LDA = (AST == 0) ? 1 : AST;                                               \
+      const std::int64_t BST = B.stride(1), LDB = (BST == 0) ? 1 : BST;                                               \
+      const std::int64_t CST = C.stride(1), LDC = (CST == 0) ? 1 : CST;                                               \
+                                                                                                                       \
+      oneapi::mkl::side side = side_mode_kk_to_onemkl(kk_side);                                                        \
+      oneapi::mkl::uplo uplo = uplo_kk_to_onemkl(kk_uplo[0]);                                                          \
+                                                                                                                       \
+      using mag_type    = kokkos_to_std_type_map<SCALAR, KokkosKernels::ArithTraits<SCALAR>::is_complex>::type;       \
+      const mag_type* a = reinterpret_cast<const mag_type*>(A.data());                                                \
+      const mag_type* b = reinterpret_cast<const mag_type*>(B.data());                                                \
+      mag_type* c        = reinterpret_cast<mag_type*>(C.data());                                                     \
+                                                                                                                       \
+      oneapi::mkl::blas::column_major::symm(exec.sycl_queue(), side, uplo, M, N, alpha, a, LDA, b, LDB, beta, c,      \
+                                            LDC);                                                                      \
+      Kokkos::Profiling::popRegion();                                                                                  \
+    }                                                                                                                  \
+  };
+
+KOKKOSBLAS3_SYMM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS3_SYMM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+
+KOKKOSBLAS3_SYMM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS3_SYMM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_SYMM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+
+}  // namespace Impl
+}  // namespace KokkosBlas
+#endif  // KOKKOSKERNELS_ENABLE_TPL_MKL && KOKKOS_ENABLE_SYCL
+
 #endif  // KOKKOSBLAS3_SYMM_TPL_SPEC_DECL_HPP_

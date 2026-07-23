@@ -63,6 +63,32 @@ KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ROCBLAS(Kokkos::complex<float>, Kokkos::LayoutLe
 
 #endif  // KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
 
+// oneMKL
+#if defined(KOKKOSKERNELS_ENABLE_TPL_MKL) && defined(KOKKOS_ENABLE_SYCL)
+
+#define KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(SCALAR, LAYOUT, MEMSPACE)                \
+  template <class ExecSpace>                                                            \
+  struct syrk_tpl_spec_avail<                                                           \
+      ExecSpace,                                                                        \
+      Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEMSPACE>, \
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                           \
+      Kokkos::View<SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEMSPACE>,        \
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged> > > {                        \
+    enum : bool { value = true };                                                       \
+  };
+
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS3_SYRK_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+
+#endif  // KOKKOSKERNELS_ENABLE_TPL_MKL && KOKKOS_ENABLE_SYCL
+
 }  // namespace Impl
 }  // namespace KokkosBlas
 

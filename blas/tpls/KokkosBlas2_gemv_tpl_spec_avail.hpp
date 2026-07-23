@@ -118,31 +118,38 @@ KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ROCBLAS(Kokkos::complex<float>, Kokkos::LayoutRi
 
 #if defined(KOKKOS_ENABLE_SYCL)
 
-#define KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(SCALAR, LAYOUT)                                           \
-  template <class ExecSpace>                                                                             \
-  struct gemv_tpl_spec_avail<                                                                            \
-      ExecSpace,                                                                                         \
-      Kokkos::View<const SCALAR**, LAYOUT,                                                               \
-                   Kokkos::Device<Kokkos::Experimental::SYCL, Kokkos::Experimental::SYCLDeviceUSMSpace>, \
-                   Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                            \
-      Kokkos::View<const SCALAR*, LAYOUT,                                                                \
-                   Kokkos::Device<Kokkos::Experimental::SYCL, Kokkos::Experimental::SYCLDeviceUSMSpace>, \
-                   Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                            \
-      Kokkos::View<SCALAR*, LAYOUT,                                                                      \
-                   Kokkos::Device<Kokkos::Experimental::SYCL, Kokkos::Experimental::SYCLDeviceUSMSpace>, \
-                   Kokkos::MemoryTraits<Kokkos::Unmanaged> > > {                                         \
-    enum : bool { value = true };                                                                        \
+#define KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(SCALAR, LAYOUT, MEMSPACE)                \
+  template <class ExecSpace>                                                            \
+  struct gemv_tpl_spec_avail<                                                           \
+      ExecSpace,                                                                        \
+      Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEMSPACE>, \
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                           \
+      Kokkos::View<const SCALAR*, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEMSPACE>,  \
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                           \
+      Kokkos::View<SCALAR*, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEMSPACE>,        \
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged> > > {                        \
+    enum : bool { value = true };                                                       \
   };
 
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutLeft)
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutLeft)
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft)
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace)
 
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutRight)
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutRight)
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight)
-KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::SYCLDeviceUSMSpace)
+
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace)
+
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(double, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(float, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace)
+KOKKOSBLAS2_GEMV_TPL_SPEC_AVAIL_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutRight, Kokkos::SYCLSharedUSMSpace)
 
 #endif
 

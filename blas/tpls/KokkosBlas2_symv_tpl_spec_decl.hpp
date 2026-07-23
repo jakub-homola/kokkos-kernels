@@ -188,4 +188,63 @@ KOKKOSBLAS2_CSYMV_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
 }  // namespace KokkosBlas
 #endif  // KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
 
+// oneMKL
+#if defined(KOKKOSKERNELS_ENABLE_TPL_MKL) && defined(KOKKOS_ENABLE_SYCL)
+#include <mkl.h>
+#include <oneapi/mkl/blas.hpp>
+#include <KokkosBlas_tpl_spec.hpp>
+
+namespace KokkosBlas {
+namespace Impl {
+
+#define KOKKOSBLAS2_SYMV_ONEMKL(SCALAR, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)                                          \
+  template <class ExecSpace>                                                                                        \
+  struct SYMV<ExecSpace,                                                                                            \
+              Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,           \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                               \
+              Kokkos::View<const SCALAR*, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,            \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                               \
+              Kokkos::View<SCALAR*, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,                  \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                               \
+              true, ETI_SPEC_AVAIL> {                                                                               \
+    using device_type = Kokkos::Device<ExecSpace, MEM_SPACE>;                                                       \
+    using mem_traits  = Kokkos::MemoryTraits<Kokkos::Unmanaged>;                                                    \
+    using AViewType   = Kokkos::View<const SCALAR**, LAYOUT, device_type, mem_traits>;                              \
+    using XViewType   = Kokkos::View<const SCALAR*, LAYOUT, device_type, mem_traits>;                               \
+    using YViewType   = Kokkos::View<SCALAR*, LAYOUT, device_type, mem_traits>;                                     \
+                                                                                                                     \
+    static void symv(const ExecSpace& exec, const char kk_uplo[], typename YViewType::const_value_type& alpha,      \
+                     const AViewType& A, const XViewType& x, typename YViewType::const_value_type& beta,            \
+                     const YViewType& y) {                                                                          \
+      std::string label = "KokkosBlas::symv[TPL_ONEMKL," + KokkosKernels::ArithTraits<SCALAR>::name() + "]";        \
+      Kokkos::Profiling::pushRegion(label);                                                                         \
+                                                                                                                     \
+      const std::int64_t N = A.extent(0);                                                                           \
+                                                                                                                     \
+      const std::int64_t AST = A.stride(1), LDA = (AST == 0) ? 1 : AST;                                             \
+      const std::int64_t XST = x.stride(0), INCX = (XST == 0) ? 1 : XST;                                            \
+      const std::int64_t YST = y.stride(0), INCY = (YST == 0) ? 1 : YST;                                            \
+                                                                                                                     \
+      oneapi::mkl::uplo uplo = uplo_kk_to_onemkl(kk_uplo[0]);                                                        \
+                                                                                                                     \
+      oneapi::mkl::blas::column_major::symv(exec.sycl_queue(), uplo, N, alpha, A.data(), LDA, x.data(), INCX, beta,  \
+                                            y.data(), INCY);                                                        \
+      Kokkos::Profiling::popRegion();                                                                               \
+    }                                                                                                                \
+  };
+
+KOKKOSBLAS2_SYMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_SYMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS2_SYMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS2_SYMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+
+KOKKOSBLAS2_SYMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_SYMV_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS2_SYMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS2_SYMV_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+
+}  // namespace Impl
+}  // namespace KokkosBlas
+#endif  // KOKKOSKERNELS_ENABLE_TPL_MKL && KOKKOS_ENABLE_SYCL
+
 #endif  // KOKKOSBLAS2_SYMV_TPL_SPEC_DECL_HPP_

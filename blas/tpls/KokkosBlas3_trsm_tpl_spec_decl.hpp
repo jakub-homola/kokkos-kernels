@@ -752,4 +752,74 @@ KOKKOSBLAS3_CTRSM_ROCBLAS(Kokkos::LayoutLeft, Kokkos::HIPManagedSpace, false)
 }  // namespace KokkosBlas
 #endif  // KOKKOSKERNELS_ENABLE_TPL_ROCBLAS
 
+// oneMKL
+#if defined(KOKKOSKERNELS_ENABLE_TPL_MKL) && defined(KOKKOS_ENABLE_SYCL)
+#include <mkl.h>
+#include <oneapi/mkl/blas.hpp>
+#include <KokkosBlas_tpl_spec.hpp>
+
+namespace KokkosBlas {
+namespace Impl {
+
+#define KOKKOSBLAS3_TRSM_ONEMKL(SCALAR, LAYOUT, MEM_SPACE, ETI_SPEC_AVAIL)                                            \
+  template <class ExecSpace>                                                                                          \
+  struct TRSM<ExecSpace,                                                                                              \
+              Kokkos::View<const SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,             \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              Kokkos::View<SCALAR**, LAYOUT, Kokkos::Device<Kokkos::Experimental::SYCL, MEM_SPACE>,                   \
+                           Kokkos::MemoryTraits<Kokkos::Unmanaged> >,                                                 \
+              true, ETI_SPEC_AVAIL> {                                                                                 \
+    using device_type = Kokkos::Device<ExecSpace, MEM_SPACE>;                                                         \
+    using mem_traits  = Kokkos::MemoryTraits<Kokkos::Unmanaged>;                                                      \
+    using AViewType   = Kokkos::View<const SCALAR**, LAYOUT, device_type, mem_traits>;                                \
+    using BViewType   = Kokkos::View<SCALAR**, LAYOUT, device_type, mem_traits>;                                      \
+                                                                                                                       \
+    static void trsm(const ExecSpace& exec, const char kk_side[], const char kk_uplo[], const char kk_trans[],        \
+                     const char kk_diag[], typename BViewType::const_value_type& alpha, const AViewType& A,           \
+                     const BViewType& B) {                                                                            \
+      std::string label = "KokkosBlas::trsm[TPL_ONEMKL," + KokkosKernels::ArithTraits<SCALAR>::name() + "]";          \
+      Kokkos::Profiling::pushRegion(label);                                                                           \
+                                                                                                                       \
+      const std::int64_t M = B.extent(0);                                                                             \
+      const std::int64_t N = B.extent(1);                                                                             \
+                                                                                                                       \
+      const std::int64_t AST = A.stride(1), LDA = (AST == 0) ? 1 : AST;                                               \
+      const std::int64_t BST = B.stride(1), LDB = (BST == 0) ? 1 : BST;                                               \
+                                                                                                                       \
+      oneapi::mkl::side side       = side_mode_kk_to_onemkl(kk_side);                                                  \
+      oneapi::mkl::uplo uplo       = uplo_kk_to_onemkl(kk_uplo[0]);                                                    \
+      oneapi::mkl::transpose trans = mode_kk_to_onemkl(kk_trans[0]);                                                   \
+      oneapi::mkl::diag diag       = diag_kk_to_onemkl(kk_diag[0]);                                                    \
+                                                                                                                       \
+      using mag_type    = kokkos_to_std_type_map<SCALAR, KokkosKernels::ArithTraits<SCALAR>::is_complex>::type;       \
+      const mag_type* a = reinterpret_cast<const mag_type*>(A.data());                                                \
+      mag_type* b        = reinterpret_cast<mag_type*>(B.data());                                                     \
+                                                                                                                       \
+      oneapi::mkl::blas::column_major::trsm(exec.sycl_queue(), side, uplo, trans, diag, M, N, alpha, a, LDA, b, LDB); \
+      Kokkos::Profiling::popRegion();                                                                                  \
+    }                                                                                                                  \
+  };
+
+KOKKOSBLAS3_TRSM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS3_TRSM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLDeviceUSMSpace, false)
+
+KOKKOSBLAS3_TRSM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(double, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS3_TRSM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(float, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<double>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, true)
+KOKKOSBLAS3_TRSM_ONEMKL(Kokkos::complex<float>, Kokkos::LayoutLeft, Kokkos::SYCLSharedUSMSpace, false)
+
+}  // namespace Impl
+}  // namespace KokkosBlas
+#endif  // KOKKOSKERNELS_ENABLE_TPL_MKL && KOKKOS_ENABLE_SYCL
+
 #endif

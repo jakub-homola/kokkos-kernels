@@ -71,6 +71,7 @@ struct SYRK<execution_space, AVIT, CVIT, false, KOKKOSKERNELS_IMPL_COMPILE_LIBRA
     static_assert(static_cast<int>(AVIT::rank) == 2, "AVIT must have rank 2.");
     static_assert(static_cast<int>(CVIT::rank) == 2, "CVIT must have rank 2.");
 
+    Kokkos::abort("KokkosBlas::syrk: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::syrk[ETI]"
                                                                      : "KokkosBlas::syrk[noETI]");
 

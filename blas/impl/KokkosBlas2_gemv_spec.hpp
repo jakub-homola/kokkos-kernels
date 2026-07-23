@@ -67,6 +67,7 @@ struct GEMV {
     static_assert(static_cast<int>(AViewType::rank) == 2, "AViewType must have rank 2.");
     static_assert(static_cast<int>(XViewType::rank) == 1, "XViewType must have rank 1.");
     static_assert(static_cast<int>(YViewType::rank) == 1, "YViewType must have rank 1.");
+    Kokkos::abort("KokkosBlas::gemv: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::gemv[ETI]"
                                                                      : "KokkosBlas::gemv[noETI]");
     typedef typename AViewType::size_type size_type;

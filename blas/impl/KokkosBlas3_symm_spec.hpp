@@ -75,6 +75,7 @@ struct SYMM<execution_space, AVIT, BVIT, CVIT, false, KOKKOSKERNELS_IMPL_COMPILE
     static_assert(static_cast<int>(BVIT::rank) == 2, "BVIT must have rank 2.");
     static_assert(static_cast<int>(CVIT::rank) == 2, "CVIT must have rank 2.");
 
+    Kokkos::abort("KokkosBlas::symm: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::symm[ETI]"
                                                                      : "KokkosBlas::symm[noETI]");
 

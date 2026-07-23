@@ -69,6 +69,7 @@ struct TRMM<execution_space, AVIT, BVIT, false, KOKKOSKERNELS_IMPL_COMPILE_LIBRA
     static_assert(static_cast<int>(AVIT::rank) == 2, "AVIT must have rank 2.");
     static_assert(static_cast<int>(BVIT::rank) == 2, "BVIT must have rank 2.");
 
+    Kokkos::abort("KokkosBlas::trmm: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::trmm[ETI]"
                                                                      : "KokkosBlas::trmm[noETI]");
 

@@ -75,6 +75,7 @@ struct TRSM<execution_space, AViewType, BViewType, false, KOKKOSKERNELS_IMPL_COM
     static_assert(static_cast<int>(AViewType::rank) == 2, "AViewType must have rank 2.");
     static_assert(static_cast<int>(BViewType::rank) == 2, "BViewType must have rank 2.");
 
+    Kokkos::abort("KokkosBlas::trsm: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::trsm[ETI]"
                                                                      : "KokkosBlas::trsm[noETI]");
 

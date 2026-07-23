@@ -57,6 +57,7 @@ struct SYR {
                   const typename AViewType::const_value_type& alpha, const XViewType& x, const AViewType& A)
 #if !defined(KOKKOSKERNELS_ETI_ONLY) || KOKKOSKERNELS_IMPL_COMPILE_LIBRARY
   {
+    Kokkos::abort("KokkosBlas::syr: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::syr[ETI]"
                                                                      : "KokkosBlas::syr[noETI]");
 

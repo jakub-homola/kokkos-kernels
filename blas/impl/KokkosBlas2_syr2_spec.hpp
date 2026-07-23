@@ -60,6 +60,7 @@ struct SYR2 {
                    const AViewType& A)
 #if !defined(KOKKOSKERNELS_ETI_ONLY) || KOKKOSKERNELS_IMPL_COMPILE_LIBRARY
   {
+    Kokkos::abort("KokkosBlas::syr2: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::syr2[ETI]"
                                                                      : "KokkosBlas::syr2[noETI]");
 

@@ -59,6 +59,7 @@ struct GER {
                   const XViewType& x, const YViewType& y, const AViewType& A)
 #if !defined(KOKKOSKERNELS_ETI_ONLY) || KOKKOSKERNELS_IMPL_COMPILE_LIBRARY
   {
+    Kokkos::abort("KokkosBlas::ger: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::ger[ETI]"
                                                                      : "KokkosBlas::ger[noETI]");
 

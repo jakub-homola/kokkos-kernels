@@ -71,6 +71,7 @@ struct SYMV<ExecutionSpace, AVIT, XVIT, YVIT, false, KOKKOSKERNELS_IMPL_COMPILE_
     static_assert(static_cast<int>(XVIT::rank) == 1, "XVIT must have rank 1.");
     static_assert(static_cast<int>(YVIT::rank) == 1, "YVIT must have rank 1.");
 
+    Kokkos::abort("KokkosBlas::symv: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::symv[ETI]"
                                                                      : "KokkosBlas::symv[noETI]");
 

@@ -80,6 +80,7 @@ struct GEMM {
     static_assert(static_cast<int>(BViewType::rank) == 2, "BViewType must have rank 2.");
     static_assert(static_cast<int>(CViewType::rank) == 2, "CViewType must have rank 2.");
 
+    Kokkos::abort("KokkosBlas::gemm: generic fallback implementation called; only TPL-backed specializations are permitted.");
     Kokkos::Profiling::pushRegion(KOKKOSKERNELS_IMPL_COMPILE_LIBRARY ? "KokkosBlas::gemm[ETI]"
                                                                      : "KokkosBlas::gemm[noETI]");
     // Figure out Scalar Types
